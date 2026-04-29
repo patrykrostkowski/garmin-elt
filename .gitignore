@@ -1,14 +1,21 @@
-x_PBI files - do not upload/Correlation matrix.pbix
-x_PBI files - do not upload/Garmin Dashboard.pbix
-x_PBI files - do not upload/Garmin visuals.pbix
-x_PBI files - do not upload/Performance_comparison.xlsx
-/.vs/Garmin-Data-ETL-Project.slnx/FileContentIndex/5487e951-6ed0-4a2d-876e-7236dba2d65b.vsidx
-/.vs/Garmin-Data-ETL-Project.slnx/FileContentIndex/be99b51e-603a-4a78-b452-7758364608b6.vsidx
-/.vs/slnx.sqlite
-/.vs/slnx.sqlite-journal
-/.vs/Garmin-Data-ETL-Project.slnx/FileContentIndex/1383dfd9-2020-4153-9b81-45939403849f.vsidx
-/.vs/Garmin-Data-ETL-Project.slnx/FileContentIndex/8595f677-caf7-4b4f-b285-a6bf60754def.vsidx
-/.vs/Garmin-Data-ETL-Project.slnx/FileContentIndex/bb9b489e-6d3c-4400-8955-f31939d048d3.vsidx
-*.vsidx
-/.gitignore
-/.gitignore
+# .gitignore
+# virtual env
+venv/
+.env
+
+# temp python files
+__pycache__/
+*.pyc
+
+# sqlite dbs
+*.db
+*.sqlite
+
+# logs
+*.log
+
+# power bi reports
+*.pbix
+
+# src table config excel file
+*.xlsx

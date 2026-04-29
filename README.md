@@ -1,61 +1,37 @@
-# Garmin Data ETL Project   
-by Patryk Rostkowski
+# Garmin ELT Pipeline
 
-## Project Proposal
-Based upon the precompiled data, the purpose of this project is to transform, explore, and analyze Garmin health and activity data. This will be done by extracting data from SQLite databases, migrating it to a SQL Server, transforming it and then create an analysis using visuals created in POWER BI. 
+A data pipeline for extracting, loading, and transforming Garmin Connect data into a dimensional model on SQL Server using a modern ELT architecture.
 
-## Finding Data
-All data used in the project were generated based on my personal activity since February 2023. The first task was to figure out ways to extract the data from my watch. Scanning through the developer pages, I found that Garmin doesn't provide any tool to extract personal data unless you request for access as a business developer. But I came across on [GarminDB](https://github.com/tcgoetz/GarminDB), which is what I looked for.  
+## Data Flow & Architecture
+The project follows a Metadata-Driven ELT approach, completely separating the Extraction/Load phase from the Transformation logic:
 
-## Project Description
-The precompiled data is being stored in 5 SQlite databases:
-- `garmin`              - contains resting heart rate data, sleep and stress tables on daily dimension
-- `garmin_activities`   - contains data relating with measured activities, along with health data and steps
-- `garmin_monitoring`   - contains precise data of steps, intense of activity, floors climbed and respiratory rate
-- `garmin_summary`      - contains summary tables
-- `summary`             - contains summary tables
-  
-In this project it will be used 4 of them, except the last one, wchich is pretty much identical as `garmin_summary`
+1. **Extraction (GarminDB CLI)**: The pipeline triggers the external `GarminDB` tool to synchronize the newest health and activity data from Garmin Connect APIs into local SQLite databases.
+2. **Load (Python)**: An isolated Python module reads configuration data directly from SQL Server, extracts new records from SQLite, and performs a bulk insert (via `fast_executemany`) into the `stg` (Staging) schema in SQL Server.
+3. **Transform (T-SQL)**: The transformation logic is fully pushed down to the database engine. A master stored procedure reads the metadata and generates dynamic, set-based `MERGE` statements to upsert data into the `src` (Target) schema.
+4. **Aggregation**: Downstream analytical views and summary tables (`dbo` schema) are recalculated based on the latest watermarks.
 
-## Transformation
-In order to transform the data and use it in our study, the following were performed:
-- [Create linked servers](https://github.com/patrykrostkowski/Garmin-Data-ETL-Project/blob/dev/db_initial_setup/20240615_garmin_db_1_install_linked_servers.sql) to connect SQLite databases
-- [SQL procedure](https://github.com/patrykrostkowski/Garmin-Data-ETL-Project/blob/dev/db_etl_objects/dbo.p_CreateSrcViews.StoredProcedure.sql) that creates staging views dynamically according to given schema and table name (that match SQLite table names) from config table. Thanks to that, data will be stored in one database.
-- [SQL procedure](https://github.com/patrykrostkowski/Garmin-Data-ETL-Project/blob/dev/db_etl_objects/dbo.p_MergeSrcTables.StoredProcedure.sql) that creates and populates staging tables, with indexing to speed up the process
-- [SQL procedure](https://github.com/patrykrostkowski/Garmin-Data-ETL-Project/blob/dev/db_etl_objects/dbo.p_MasterDataLoad.StoredProcedure.sql) that trigger whole process (with historical/incremental parameter), from populating staging and summary tables, with indexing
-- Some SQL views with combination of specified data for visuals purpose
+## Project Structure
+```text
+├── database_setup/   # DDL scripts, table definitions, and CSV seed files (metadata)
+├── extract/          # Python extraction module (loads data from SQLite to SQL Server)
+├── logs/             # Pipeline execution logs (ignored by Git)
+├── orchestration/    # Batch scripts (.bat) orchestrating the ELT process
+├── transform/        # T-SQL scripts containing set-based transformations and views
+├── .env.example      # Template for environment variables (DB connections, paths)
+├── requirements.txt  # Python virtual environment dependencies
+└── README.md         # Project documentation
+```
 
----
-![etl_flow_diagram](https://github.com/patrykrostkowski/Garmin-Data-ETL-Project/blob/dev/screenshots/etl_flow_diagram.png)
----
-The whole process (from getting Garmin's data to all sql transformations) was wrapped up in an SSIS package and deployed into the SQL Integration Service Catalog.
+## Prerequisites
+* Python 3.10+
+* SQL Server (Developer/Express) with ODBC Driver 17+
+* [GarminDB](https://github.com/tcgoetz/GarminDB) configured and synced locally.
 
-## Data Cleanup and Analysis
-### Data preparation and transformation 
-To be able to choose which tables we want to load, [config table](https://github.com/patrykrostkowski/Garmin-Data-ETL-Project/blob/dev/screenshots/config_table.png) contains the full list of tables, the schema they will be created in, and an indicator pointing which table we want to see in the final output
-- acc - schema created for config and administration objects 
-- src - schema created for staging objects (by 'staging', I mean object loaded in the original structure as they were in the SQLite database)
-- dbo - schema created for transformed objects
-- some columns at sink objects were removed, cause it doesnt collect any/important data
-- duration time columns were converted to store only minutes as int
-- all transformation steps are beeing stored in `garmin` database to avoid cross database queries
+## Setup Instructions
+1. Clone this repository.
+2. Create a virtual environment and run `pip install -r requirements.txt`.
+3. Copy `.env.example` to `.env` and configure your database credentials and path settings (e.g. path to GarminDB scripts).
+4. Run `deploy_db.bat` to build the SQL Server schemas and tables, and load the initial metadata configuration.
 
-### Analysis
-Here are some ideas it was considering to explore in further analysis
-- create dashboard summarizing my daily activity
-- create steps heatmap across the week and time of the day
-- dashboard summarizing my activity over time
-- check if/how sports activity impacts on resting heart rate level
-- count activity types over months
-- stress, weekday and active minutes correlation
-- how intense exercices during the day or before sleep impacts sleep phases
-  
-### [HERE YOU CAN READ MY HEALTH ARTICLE](https://github.com/patrykrostkowski/Garmin-Data-ETL-Project/blob/dev/health_analysis/Analysis.md)
-
-## End notes
-This data analysis is based on a limited set of data points and should not be extrapolated to the masses. Please consider it as a fun read.
-The backup of database objects was made based on [Microsoft backup solution](https://github.com/microsoft/mssql-scripter).
-For training purposes, all summary tables were recalculated manually, slightly customized, and used further. 
-There were some limitations to calculate some columns due to no raw data (e.g.sweat_loss data), so some of them were taken from default summary tables.
-
-
+## Execution
+Execute `orchestration/master_garmin_daily.bat` to run the daily pipeline.
