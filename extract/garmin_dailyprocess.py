@@ -83,6 +83,7 @@ for index, row in df_config.iterrows():
                     print(f"  [i] MODE 3 (ID Delta). Watermark: > {max_val}")
         except Exception as e:
             print(f"  [!] Watermark evaluation failed: {e}")
+            sys.exit(1)
 
     try:
         with sqlite3.connect(sqlite_path) as sqlite_conn:
@@ -101,6 +102,7 @@ for index, row in df_config.iterrows():
         print(f"  [+] Loaded {rows_count} rows.")
     except Exception as e:
         print(f"  [!] ERROR writing to SQL Server: {e}")
+        sys.exit(1)
 
 # --- TRIGGER MASTER ELT ---
 trigger_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -113,3 +115,4 @@ try:
 except Exception as e:
     err_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     print(f"[{err_time}] [!] ERROR executing Master ELT Procedure: {e}")
+    sys.exit(1)
