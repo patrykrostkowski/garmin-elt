@@ -1,37 +1,40 @@
-﻿ID;SourceDB;SourceTableName;StageSchema;StageTableName;TargetSchema;TargetTableName;LoadType;MergeKey;ActiveInd;WatermarkColumn;WatermarkType
-1;garmin;_attributes;stg;Garmin_Attributes;src;Garmin_Attributes;truncate;key;1;key;id
-2;garmin;attributes;stg;Garmin_PersonalAttributes;src;Garmin_PersonalAttributes;truncate;key;1;key;id
-3;garmin;daily_summary;stg;Garmin_DailySummary;src;Garmin_DailySummary;merge;day;1;day;date
-4;garmin;device_info;stg;Garmin_DeviceInfo;src;Garmin_DeviceInfo;truncate;timestamp, serial_number;0;timestamp;date
-5;garmin;devices;stg;Garmin_Devices;src;Garmin_Devices;truncate;serial_number;0;serial_number;id
-6;garmin;files;stg;Garmin_Files;src;Garmin_Files;merge;id;1;id;id
-7;garmin;resting_hr;stg;Garmin_RestingHr;src;Garmin_RestingHr;merge;day;1;day;date
-8;garmin;sleep;stg;Garmin_Sleep;src;Garmin_Sleep;merge;day;1;day;date
-9;garmin;sleep_events;stg;Garmin_SleepEvents;src;Garmin_SleepEvents;merge;timestamp;1;timestamp;date
-10;garmin;stress;stg;Garmin_Stress;src;Garmin_Stress;merge;timestamp;1;timestamp;date
-11;garmin;weight;stg;Garmin_Weight;src;Garmin_Weight;merge;day;1;day;date
-12;garmin_activities;_attributes;stg;GarminActivities_Attributes;src;GarminActivities_Attributes;truncate;key;0;key;id
-13;garmin_activities;activities;stg;GarminActivities_Activities;src;GarminActivities_Activities;merge;activity_id;1;activity_id;id
-14;garmin_activities;activities_devices;stg;GarminActivities_ActivitiesDevices;src;GarminActivities_ActivitiesDevices;truncate;activity_id, device_serial_number;0;activity_id;id
-15;garmin_activities;activity_laps;stg;GarminActivities_ActivityLaps;src;GarminActivities_ActivityLaps;merge;activity_id, lap;1;activity_id;id
-16;garmin_activities;activity_records;stg;GarminActivities_ActivityRecords;src;GarminActivities_ActivityRecords;merge;activity_id, record;1;activity_id;id
-17;garmin_activities;activity_splits;stg;GarminActivities_ActivitySplits;src;GarminActivities_ActivitySplits;merge;activity_id, split;1;activity_id;id
-18;garmin_activities;climbing_activities;stg;GarminActivities_ClimbingActivities;src;GarminActivities_ClimbingActivities;merge;activity_id;1;activity_id;id
-19;garmin_activities;cycle_activities;stg;GarminActivities_CycleActivities;src;GarminActivities_CycleActivities;merge;activity_id;1;activity_id;id
-20;garmin_activities;paddle_activities;stg;GarminActivities_PaddleActivities;src;GarminActivities_PaddleActivities;merge;activity_id;1;activity_id;id
-21;garmin_activities;steps_activities;stg;GarminActivities_StepsActivities;src;GarminActivities_StepsActivities;merge;activity_id;1;activity_id;id
-22;garmin_monitoring;_attributes;stg;GarminMonitoring_Attributes;src;GarminMonitoring_Attributes;truncate;key;1;key;id
-23;garmin_monitoring;monitoring;stg;GarminMonitoring_Monitoring;src;GarminMonitoring_Monitoring;merge;timestamp, activity_type;1;timestamp;date
-24;garmin_monitoring;monitoring_climb;stg;GarminMonitoring_MonitoringClimb;src;GarminMonitoring_MonitoringClimb;merge;timestamp;1;timestamp;date
-25;garmin_monitoring;monitoring_hr;stg;GarminMonitoring_MonitoringHr;src;GarminMonitoring_MonitoringHr;merge;timestamp;1;timestamp;date
-26;garmin_monitoring;monitoring_info;stg;GarminMonitoring_MonitoringInfo;src;GarminMonitoring_MonitoringInfo;merge;timestamp, activity_type;1;timestamp;date
-27;garmin_monitoring;monitoring_intensity;stg;GarminMonitoring_MonitoringIntensity;src;GarminMonitoring_MonitoringIntensity;merge;timestamp;1;timestamp;date
-28;garmin_monitoring;monitoring_pulse_ox;stg;GarminMonitoring_MonitoringPulseOx;src;GarminMonitoring_MonitoringPulseOx;merge;timestamp;1;timestamp;date
-29;garmin_monitoring;monitoring_rr;stg;GarminMonitoring_MonitoringRr;src;GarminMonitoring_MonitoringRr;merge;timestamp;1;timestamp;date
-30;garmin_summary;_attributes;stg;GarminSummary_Attributes;src;GarminSummary_Attributes;truncate;key;1;key;id
-31;garmin_summary;days_summary;stg;GarminSummary_DaysSummary;src;GarminSummary_DaysSummary;merge;day;1;day;date
-32;garmin_summary;intensity_hr;stg;GarminSummary_IntensityHr;src;GarminSummary_IntensityHr;merge;timestamp;1;timestamp;date
-33;garmin_summary;months_summary;stg;GarminSummary_MonthsSummary;src;GarminSummary_MonthsSummary;merge;first_day;1;first_day;date
-34;garmin_summary;summary;stg;GarminSummary_Summary;src;GarminSummary_Summary;truncate;key;1;key;id
-35;garmin_summary;weeks_summary;stg;GarminSummary_WeeksSummary;src;GarminSummary_WeeksSummary;merge;first_day;1;first_day;date
-36;garmin_summary;years_summary;stg;GarminSummary_YearsSummary;src;GarminSummary_YearsSummary;merge;first_day;1;first_day;date
+ID,SourceDB,SourceTableName,StageSchema,StageTableName,TargetSchema,TargetTableName,LoadType,MergeKey,ActiveInd,WatermarkColumn,WatermarkType
+1,garmin,_attributes,stg,Garmin_Attributes,src,Garmin_Attributes,truncate,key,1,key,id
+2,garmin,attributes,stg,Garmin_PersonalAttributes,src,Garmin_PersonalAttributes,truncate,key,1,key,id
+3,garmin,daily_summary,stg,Garmin_DailySummary,src,Garmin_DailySummary,merge,day,1,day,date
+4,garmin,device_info,stg,Garmin_DeviceInfo,src,Garmin_DeviceInfo,truncate,"timestamp, serial_number",0,timestamp,date
+5,garmin,devices,stg,Garmin_Devices,src,Garmin_Devices,truncate,serial_number,0,serial_number,id
+6,garmin,files,stg,Garmin_Files,src,Garmin_Files,merge,id,1,id,id
+7,garmin,hrv,stg,Garmin_HRV,src,Garmin_HRV,merge,day,1,day,date
+8,garmin,resting_hr,stg,Garmin_RestingHr,src,Garmin_RestingHr,merge,day,1,day,date
+9,garmin,sleep,stg,Garmin_Sleep,src,Garmin_Sleep,merge,day,1,day,date
+10,garmin,sleep_events,stg,Garmin_SleepEvents,src,Garmin_SleepEvents,merge,timestamp,1,timestamp,date
+11,garmin,stress,stg,Garmin_Stress,src,Garmin_Stress,merge,timestamp,1,timestamp,date
+12,garmin,weight,stg,Garmin_Weight,src,Garmin_Weight,merge,day,1,day,date
+13,garmin_activities,_attributes,stg,GarminActivities_Attributes,src,GarminActivities_Attributes,truncate,key,0,key,id
+14,garmin_activities,activities,stg,GarminActivities_Activities,src,GarminActivities_Activities,merge,activity_id,1,activity_id,id
+15,garmin_activities,activities_devices,stg,GarminActivities_ActivitiesDevices,src,GarminActivities_ActivitiesDevices,truncate,"activity_id, device_serial_number",0,activity_id,id
+16,garmin_activities,activity_laps,stg,GarminActivities_ActivityLaps,src,GarminActivities_ActivityLaps,merge,"activity_id, lap",1,activity_id,id
+17,garmin_activities,activity_records,stg,GarminActivities_ActivityRecords,src,GarminActivities_ActivityRecords,merge,"activity_id, record",1,activity_id,id
+18,garmin_activities,activity_splits,stg,GarminActivities_ActivitySplits,src,GarminActivities_ActivitySplits,merge,"activity_id, split",1,activity_id,id
+19,garmin_activities,climbing_activities,stg,GarminActivities_ClimbingActivities,src,GarminActivities_ClimbingActivities,merge,activity_id,1,activity_id,id
+20,garmin_activities,cycle_activities,stg,GarminActivities_CycleActivities,src,GarminActivities_CycleActivities,merge,activity_id,1,activity_id,id
+21,garmin_activities,paddle_activities,stg,GarminActivities_PaddleActivities,src,GarminActivities_PaddleActivities,merge,activity_id,1,activity_id,id
+22,garmin_activities,steps_activities,stg,GarminActivities_StepsActivities,src,GarminActivities_StepsActivities,merge,activity_id,1,activity_id,id
+23,garmin_monitoring,_attributes,stg,GarminMonitoring_Attributes,src,GarminMonitoring_Attributes,truncate,key,1,key,id
+24,garmin_monitoring,monitoring,stg,GarminMonitoring_Monitoring,src,GarminMonitoring_Monitoring,merge,"timestamp, activity_type",1,timestamp,date
+25,garmin_monitoring,monitoring_climb,stg,GarminMonitoring_MonitoringClimb,src,GarminMonitoring_MonitoringClimb,merge,timestamp,1,timestamp,date
+26,garmin_monitoring,monitoring_hr,stg,GarminMonitoring_MonitoringHr,src,GarminMonitoring_MonitoringHr,merge,timestamp,1,timestamp,date
+27,garmin_monitoring,monitoring_hrv_status,stg,GarminMonitoring_MonitoringHRVStatus,src,GarminMonitoring_MonitoringHRVStatus,merge,timestamp,1,timestamp,date
+28,garmin_monitoring,monitoring_hrv_value,stg,GarminMonitoring_MonitoringHRVValue,src,GarminMonitoring_MonitoringHRVValue,merge,timestamp,1,timestamp,date
+29,garmin_monitoring,monitoring_info,stg,GarminMonitoring_MonitoringInfo,src,GarminMonitoring_MonitoringInfo,merge,"timestamp, activity_type",1,timestamp,date
+30,garmin_monitoring,monitoring_intensity,stg,GarminMonitoring_MonitoringIntensity,src,GarminMonitoring_MonitoringIntensity,merge,timestamp,1,timestamp,date
+31,garmin_monitoring,monitoring_pulse_ox,stg,GarminMonitoring_MonitoringPulseOx,src,GarminMonitoring_MonitoringPulseOx,merge,timestamp,1,timestamp,date
+32,garmin_monitoring,monitoring_rr,stg,GarminMonitoring_MonitoringRr,src,GarminMonitoring_MonitoringRr,merge,timestamp,1,timestamp,date
+33,garmin_summary,_attributes,stg,GarminSummary_Attributes,src,GarminSummary_Attributes,truncate,key,1,key,id
+34,garmin_summary,days_summary,stg,GarminSummary_DaysSummary,src,GarminSummary_DaysSummary,merge,day,1,day,date
+35,garmin_summary,intensity_hr,stg,GarminSummary_IntensityHr,src,GarminSummary_IntensityHr,merge,timestamp,1,timestamp,date
+36,garmin_summary,months_summary,stg,GarminSummary_MonthsSummary,src,GarminSummary_MonthsSummary,merge,first_day,1,first_day,date
+37,garmin_summary,summary,stg,GarminSummary_Summary,src,GarminSummary_Summary,truncate,key,1,key,id
+38,garmin_summary,weeks_summary,stg,GarminSummary_WeeksSummary,src,GarminSummary_WeeksSummary,merge,first_day,1,first_day,date
+39,garmin_summary,years_summary,stg,GarminSummary_YearsSummary,src,GarminSummary_YearsSummary,merge,first_day,1,first_day,date
