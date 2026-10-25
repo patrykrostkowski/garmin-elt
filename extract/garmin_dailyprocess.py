@@ -1,16 +1,18 @@
 import os
 import sys
-import urllib
+import urllib.parse
 import sqlite3
 import pandas as pd
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
+from sqlalchemy.exc import SAWarning
 import warnings
+
 warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=SAWarning)
 
 def log(message: str, is_error: bool = False) -> None:
-    """Pomocnicza funkcja do jednolitego formatowania logów."""
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     prefix = "[!]" if is_error else "[i]"
     print(f"[{timestamp}] {prefix} {message}")
@@ -28,33 +30,40 @@ if not all([DB_SERVER, DB_NAME, DB_DRIVER, SQLITE_DIR]):
     sys.exit(1)
 
 params = urllib.parse.quote_plus(
-    f"DRIVER={{{DB_DRIVER}}};SERVER={DB_SERVER};DATABASE={DB_NAME};Trusted_Connection=yes;"
+    f"DRIVER={{{DB_DRIVER}}};"
+    f"SERVER={DB_SERVER};"
+    f"DATABASE={DB_NAME};"
+    f"Trusted_Connection=yes;"
+    f"TrustServerCertificate=yes;"
 )
 sql_engine = create_engine(f"mssql+pyodbc:///?odbc_connect={params}", fast_executemany=True)
 
 log("Fetching Stage configuration from SQL Server...")
 
-config_query = """
+config_query = text("""
     SELECT SourceDB, SourceTableName, StageSchema, StageTableName, 
            TargetSchema, TargetTableName, LoadType, MergeKey, 
            WatermarkColumn, WatermarkType
     FROM [acc].[SrcTableConfig] 
     WHERE ActiveInd = 1
-"""
+""")
 
 try:
     with sql_engine.connect() as conn:
-        df_config = pd.read_sql(text(config_query), conn)
+        result = conn.execute(config_query)
+        config_rows = [dict(row._mapping) for row in result]
 except Exception as e:
     log(f"CRITICAL ERROR fetching configuration: {e}", is_error=True)
     sys.exit(1)
 
-if df_config.empty:
+if not config_rows:
     log("No active configuration found in [acc].[SrcTableConfig]. Exiting.")
     sys.exit(0)
 
 # --- EXTRACT & LOAD
-for index, row in df_config.iterrows():
+total_tables = len(config_rows)
+
+for index, row in enumerate(config_rows):
     source_db_name = row['SourceDB']
     source_table = row['SourceTableName']
     stage_schema = row['StageSchema']
@@ -64,11 +73,11 @@ for index, row in df_config.iterrows():
     load_type = str(row['LoadType']).lower()
     
     wm_col = row['WatermarkColumn']
-    wm_type = str(row['WatermarkType']).lower() if pd.notna(row['WatermarkType']) else None
+    wm_type = str(row['WatermarkType']).lower() if row['WatermarkType'] is not None else None
     
     sqlite_path = os.path.join(SQLITE_DIR, f"{source_db_name}.db")
     
-    log(f"[{index+1}/{len(df_config)}] Processing: {source_db_name}.{source_table} -> [{stage_schema}].[{stage_table}]")
+    log(f"[{index+1}/{total_tables}] Processing: {source_db_name}.{source_table} -> [{stage_schema}].[{stage_table}]")
     
     if not os.path.exists(sqlite_path):
         log(f"SKIPPED: SQLite DB file not found at '{sqlite_path}'", is_error=True)
@@ -76,16 +85,14 @@ for index, row in df_config.iterrows():
     
     sqlite_query = f"SELECT * FROM [{source_table}]"
     
-    # Inkrementalny wyciąg na podstawie Watermark (jeśli dotyczy)
+    # Incremental extraction based on Watermark
     if load_type == 'merge' and wm_col and wm_type in ('date', 'id'):
         try:
-            watermark_query = f"SELECT MAX([{wm_col}]) as max_val FROM [{target_schema}].[{target_table}]"
+            watermark_query = text(f"SELECT MAX([{wm_col}]) FROM [{target_schema}].[{target_table}]")
             with sql_engine.connect() as conn:
-                df_wm = pd.read_sql(text(watermark_query), conn)
+                max_val = conn.execute(watermark_query).scalar()
             
-            max_val = df_wm['max_val'].iloc[0] if not df_wm.empty else None
-            
-            if pd.notnull(max_val):
+            if max_val is not None:
                 if wm_type == 'date':
                     cutoff_date = pd.to_datetime(max_val) - timedelta(days=3)
                     cutoff_str = cutoff_date.strftime('%Y-%m-%d %H:%M:%S') if len(str(max_val)) > 10 else cutoff_date.strftime('%Y-%m-%d')
@@ -98,7 +105,7 @@ for index, row in df_config.iterrows():
             log(f"Watermark evaluation failed for [{target_schema}].[{target_table}]: {e}", is_error=True)
             sys.exit(1)
 
-    # Odczyt ze SQLite
+    # Read from SQLite
     try:
         with sqlite3.connect(sqlite_path) as sqlite_conn:
             df_source = pd.read_sql_query(sqlite_query, sqlite_conn)
@@ -121,13 +128,14 @@ for index, row in df_config.iterrows():
     df_source = df_source.replace({pd.NaT: None})
 
     try:
-        df_source.to_sql(
-            name=stage_table, 
-            con=sql_engine, 
-            schema=stage_schema, 
-            if_exists='replace', 
-            index=False
-        )
+        with sql_engine.begin() as conn:
+            df_source.to_sql(
+                name=stage_table, 
+                con=conn, 
+                schema=stage_schema, 
+                if_exists='replace', 
+                index=False
+            )
         log(f"Loaded {rows_count} rows into [{stage_schema}].[{stage_table}].")
     except Exception as e:
         log(f"ERROR writing to SQL Server [{stage_schema}].[{stage_table}]: {e}", is_error=True)
@@ -137,7 +145,6 @@ for index, row in df_config.iterrows():
 trigger_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 print(f"\n[{trigger_time}] Triggering Master ELT Procedure in SQL Server...")
 try:
-    # Use .connect() with AUTOCOMMIT so Python doesn't wrap the execution in its own transaction
     with sql_engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
         conn.execute(text("EXEC [dbo].[p_MasterDataLoad]"))
     end_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')

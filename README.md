@@ -29,7 +29,7 @@ The project follows a Metadata-Driven ELT approach, completely separating the Ex
 
 ## Setup Instructions
 1. Clone this repository.
-2. Create a virtual environment and run `pip install -r requirements.txt`.
+2. Create a virtual environment and run `python -m pip install -r requirements.txt`.
 3. Copy `.env.example` to `.env` and configure your database credentials and path settings (e.g. path to GarminDB scripts).
 4. Run `deploy_db.bat` to build the SQL Server schemas and tables, and load the initial metadata configuration.
 

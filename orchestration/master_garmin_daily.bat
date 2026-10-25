@@ -73,7 +73,7 @@ echo =================================================== >> "%LOGFILE%"
 echo [2/2] RUNNING: ELT Pipeline (Extract ^& Stage + SQL Master Procedure)...
 echo [2/2] RUNNING: ELT Pipeline (Extract ^& Stage + SQL Master Procedure)... >> "%LOGFILE%"
 
-set "PYTHON_ENV=%PROJECT_DIR%\venv\Scripts\python.exe"
+set "PYTHON_ENV=%PROJECT_DIR%\.venv\Scripts\python.exe"
 set "SCRIPT_PATH=%PROJECT_DIR%\extract\garmin_dailyprocess.py"
 
 if not exist "%PYTHON_ENV%" (
