@@ -2,6 +2,7 @@
 # virtual env
 venv/
 .env
+.vs
 
 # temp python files
 __pycache__/
