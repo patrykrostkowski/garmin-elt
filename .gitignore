@@ -1,6 +1,6 @@
 # .gitignore
 # virtual env
-venv/
+.venv/
 .env
 .vs
 
@@ -20,3 +20,6 @@ __pycache__/
 
 # src table config excel file
 *.xlsx
+
+# project data
+*.slnx
