@@ -23,3 +23,7 @@ __pycache__/
 
 # project data
 *.slnx
+
+export/output/
+export/credentials.json
+export/token.json
